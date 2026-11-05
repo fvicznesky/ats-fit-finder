@@ -29,6 +29,34 @@ describe("fixes", () => {
       "Director of IT Applications",
     );
   });
+  it("never takes 'Essential Responsibilities' or other duties headers as the title", () => {
+    for (const header of [
+      "Essential Responsibilities",
+      "Key Responsibilities:",
+      "- Primary Responsibilities",
+      "Responsibilities",
+      "Qualifications",
+      "Requirements",
+      "Duties",
+      "Overview",
+    ]) {
+      expect(extractJobTitle(`${header}\nSenior Backend Engineer\nWe are hiring...`)).toBe(
+        "Senior Backend Engineer",
+      );
+    }
+    expect(extractJobTitle("Essential Responsibilities\n- Build APIs\n- Review code")).toBe("");
+  });
+  it("prefers an explicit Title: hint over section headers", () => {
+    expect(
+      extractJobTitle("Essential Responsibilities\n- Build APIs\nTitle: Senior Backend Engineer"),
+    ).toBe("Senior Backend Engineer");
+  });
+  it("a user-supplied title override wins over detection", () => {
+    const r = scoreResume("Skills\nPython", "Title: Data Analyst\nRequired:\n- Python", {
+      titleOverride: "Senior Backend Engineer",
+    });
+    expect(r.job_title).toBe("Senior Backend Engineer");
+  });
   it("does not treat the English word 'go' as the Go language", () => {
     expect(termsInText("Ready to go above and beyond? Let's go.").has("go")).toBe(false);
     expect(termsInText("Experience with Golang services").has("go")).toBe(true);
