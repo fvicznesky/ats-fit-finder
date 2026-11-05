@@ -84,6 +84,14 @@ const GENERIC_HEADINGS = new Set([
   "about", "about us", "about the company", "about the role", "about the job", "the role",
   "responsibilities", "requirements", "qualifications", "job posting", "posting", "apply",
   "apply now", "careers", "position summary", "role overview", "who we are", "company overview",
+  "essential responsibilities", "key responsibilities", "primary responsibilities",
+  "main responsibilities", "core responsibilities", "general responsibilities",
+  "duties", "essential duties", "key duties", "primary duties", "job duties",
+  "essential functions", "key functions", "primary functions",
+  "what you will do", "what you'll do", "your role", "the job", "position overview",
+  "job overview", "role summary", "position description", "job requirements",
+  "minimum qualifications", "preferred qualifications", "basic qualifications",
+  "skills", "benefits", "compensation", "location", "schedule",
 ]);
 
 export function scoreResume(resumeText: string, jobText: string): ScoreResult {
@@ -186,11 +194,17 @@ export function extractJobTerms(jobText: string): [string[], string[]] {
 }
 
 export function extractJobTitle(jobText: string): string {
-  for (const line of jobText.split(/\r?\n/)) {
-    const s = line.trim();
-    if (!s) continue;
+  const lines = jobText.split(/\r?\n/).map((l) => l.trim().replace(/^[-*•\s]+/, "")).filter(Boolean);
+  // First pass: explicit hints like "Title:", "Position:", "Role:" anywhere in the posting.
+  for (const s of lines) {
     const hinted = TITLE_HINT_RE.exec(s);
-    if (hinted) return cleanTitle(hinted[1] ?? "");
+    if (hinted) {
+      const t = cleanTitle(hinted[1] ?? "");
+      if (t) return t;
+    }
+  }
+  // Second pass: first short line that is not a generic section header or duties line.
+  for (const s of lines) {
     const key = s.toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim();
     if (!key || GENERIC_HEADINGS.has(key)) continue;
     if (s.length <= 80 && !/[.:]$/.test(s)) return cleanTitle(s);
