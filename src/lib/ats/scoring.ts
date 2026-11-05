@@ -190,7 +190,7 @@ export function extractJobTitle(jobText: string): string {
     const s = line.trim();
     if (!s) continue;
     const hinted = TITLE_HINT_RE.exec(s);
-    if (hinted) return cleanTitle(hinted[1]);
+    if (hinted) return cleanTitle(hinted[1] ?? "");
     const key = s.toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim();
     if (!key || GENERIC_HEADINGS.has(key)) continue;
     if (s.length <= 80 && !/[.:]$/.test(s)) return cleanTitle(s);
