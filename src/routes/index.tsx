@@ -26,13 +26,26 @@ function Panel({ title, value, onChange }: { title: string; value: string; onCha
     <section className="flex flex-col rounded-xl border bg-card p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-serif text-xl">{title}</h2>
-        <button
-          type="button"
-          onClick={() => input.current?.click()}
-          className="rounded-full border px-3 py-1 text-sm hover:bg-accent"
-        >
-          {busy ? "Reading…" : "Upload"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setErr("");
+            }}
+            disabled={!value}
+            className="rounded-full border px-3 py-1 text-sm hover:bg-accent disabled:opacity-40"
+          >
+            Clear
+          </button>
+          <button
+            type="button"
+            onClick={() => input.current?.click()}
+            className="rounded-full border px-3 py-1 text-sm hover:bg-accent"
+          >
+            {busy ? "Reading…" : "Upload"}
+          </button>
+        </div>
         <input
           ref={input}
           type="file"
@@ -124,6 +137,19 @@ function Index() {
         <div className="flex items-center gap-4 md:col-span-2">
           <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-foreground hover:opacity-90">
             Score resume
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setResume("");
+              setJob("");
+              setTitleOverride("");
+              setResult(null);
+              setError("");
+            }}
+            className="rounded-full border px-6 py-2.5 font-medium hover:bg-accent"
+          >
+            Start over
           </button>
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
