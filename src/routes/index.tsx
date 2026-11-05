@@ -69,8 +69,13 @@ function Panel({ title, value, onChange }: { title: string; value: string; onCha
 function Index() {
   const [resume, setResume] = useState("");
   const [job, setJob] = useState("");
+  const [titleOverride, setTitleOverride] = useState("");
   const [result, setResult] = useState<ScoreResult | null>(null);
   const [error, setError] = useState("");
+
+  const rescore = (resumeText: string, jobText: string, title: string) => {
+    setResult(scoreResume(resumeText, jobText, { titleOverride: title }));
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-5 pb-20 pt-10">
