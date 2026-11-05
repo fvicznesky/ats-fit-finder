@@ -94,7 +94,7 @@ const GENERIC_HEADINGS = new Set([
   "skills", "benefits", "compensation", "location", "schedule",
 ]);
 
-export function scoreResume(resumeText: string, jobText: string): ScoreResult {
+export function scoreResume(resumeText: string, jobText: string, opts?: { titleOverride?: string }): ScoreResult {
   const resume = resumeText.trim();
   const job = jobText.trim();
   const warnings: string[] = [];
@@ -105,7 +105,7 @@ export function scoreResume(resumeText: string, jobText: string): ScoreResult {
   const resumeNorm = normalizeText(resume);
   const sections = detectSections(resume);
   const [requiredTerms, preferredTerms] = extractJobTerms(job);
-  const title = extractJobTitle(job);
+  const title = opts?.titleOverride?.trim() || extractJobTitle(job);
   const yearsRequired = extractYears(job);
 
   const reqHits = requiredTerms.map((t) => ({ term: t, matched: matchTerm(t, resumeStem, resumeNorm) }));
