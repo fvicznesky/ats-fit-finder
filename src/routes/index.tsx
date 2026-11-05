@@ -99,12 +99,28 @@ function Index() {
             return;
           }
           setError("");
-          setResult(scoreResume(resume, job));
+          rescore(resume, job, titleOverride);
           setTimeout(() => document.getElementById("results")?.scrollIntoView({ behavior: "smooth" }), 50);
         }}
       >
         <Panel title="Resume" value={resume} onChange={setResume} />
         <Panel title="Job description" value={job} onChange={setJob} />
+        <div className="md:col-span-2">
+          <label htmlFor="target-title" className="mb-1 block text-sm font-medium">
+            Target job title <span className="font-normal text-muted-foreground">(optional — overrides the detected title)</span>
+          </label>
+          <input
+            id="target-title"
+            type="text"
+            value={titleOverride}
+            onChange={(e) => {
+              setTitleOverride(e.target.value);
+              if (result) rescore(resume, job, e.target.value);
+            }}
+            placeholder="e.g. Director of IT Applications"
+            className="w-full max-w-md rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
         <div className="flex items-center gap-4 md:col-span-2">
           <button className="rounded-full bg-primary px-6 py-2.5 font-medium text-primary-foreground hover:opacity-90">
             Score resume
@@ -113,12 +129,29 @@ function Index() {
         </div>
       </form>
 
-      {result && <Results r={result} />}
+      {result && (
+        <Results
+          r={result}
+          titleOverride={titleOverride}
+          onTitleChange={(t) => {
+            setTitleOverride(t);
+            rescore(resume, job, t);
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function Results({ r }: { r: ScoreResult }) {
+function Results({
+  r,
+  titleOverride,
+  onTitleChange,
+}: {
+  r: ScoreResult;
+  titleOverride: string;
+  onTitleChange: (t: string) => void;
+}) {
   const tone = r.score >= 90 ? "var(--success)" : r.score >= 70 ? "var(--primary)" : "var(--destructive)";
   const gap = Math.max(0, r.target - r.score);
   return (
@@ -142,12 +175,18 @@ function Results({ r }: { r: ScoreResult }) {
               : `${gap} points below the 90% target. Start with the high-priority items.`}
           </p>
           <p className="text-muted-foreground">Projected if you can honestly apply every item: {r.projected_score}%.</p>
-          {(r.job_title || r.years_required) && (
-            <p className="text-muted-foreground">
-              {r.job_title && <>Detected job title: {r.job_title}</>}
-              {r.years_required ? ` · ${r.years_required}+ years of experience requested` : ""}
-            </p>
-          )}
+          <p className="flex flex-wrap items-center gap-2 text-muted-foreground">
+            <label htmlFor="detected-title">Detected job title:</label>
+            <input
+              id="detected-title"
+              type="text"
+              value={titleOverride || r.job_title}
+              onChange={(e) => onTitleChange(e.target.value)}
+              placeholder="Type the exact title from the posting"
+              className="min-w-56 rounded-md border bg-background px-2 py-1 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+            />
+            {r.years_required ? `· ${r.years_required}+ years of experience requested` : ""}
+          </p>
         </div>
       </div>
 
