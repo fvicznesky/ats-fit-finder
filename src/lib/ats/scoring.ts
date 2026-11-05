@@ -194,17 +194,18 @@ export function extractJobTerms(jobText: string): [string[], string[]] {
 }
 
 export function extractJobTitle(jobText: string): string {
-  const lines = jobText.split(/\r?\n/).map((l) => l.trim().replace(/^[-*•\s]+/, "")).filter(Boolean);
+  const raw = jobText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   // First pass: explicit hints like "Title:", "Position:", "Role:" anywhere in the posting.
-  for (const s of lines) {
+  for (const s of raw) {
     const hinted = TITLE_HINT_RE.exec(s);
     if (hinted) {
       const t = cleanTitle(hinted[1] ?? "");
       if (t) return t;
     }
   }
-  // Second pass: first short line that is not a generic section header or duties line.
-  for (const s of lines) {
+  // Second pass: first short non-bullet line that is not a generic section header or duties line.
+  for (const s of raw) {
+    if (/^[-*•]/.test(s)) continue; // bullet lines are duties, never the title
     const key = s.toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim();
     if (!key || GENERIC_HEADINGS.has(key)) continue;
     if (s.length <= 80 && !/[.:]$/.test(s)) return cleanTitle(s);
