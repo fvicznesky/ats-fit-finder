@@ -130,7 +130,7 @@ describe("generic job bullet review", () => {
     const r = reviewJobBullets("Skills\n- Built Python APIs on AWS", "Duties:\n- Manage vendor contracts and procurement negotiations\n- Build Python APIs on AWS cloud");
     expect(r.checked).toBe(2);
     expect(r.gaps).toHaveLength(1);
-    expect(r.gaps[0].requirement).toContain("vendor contracts");
+    expect(r.gaps[0]?.requirement).toContain("vendor contracts");
   });
 });
 it("reads unbulleted lines under a heading", () => {

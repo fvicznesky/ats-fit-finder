@@ -135,7 +135,7 @@ export function reviewJobBullets(resume: string, job: string, skip: string[] = [
     const ratio = bestHits / words.length;
     if (ratio >= 0.6) { covered++; continue; }
     gaps.push({ capability: req.split(/\s+/).slice(0, 8).join(" ") + (req.split(/\s+/).length > 8 ? "…" : ""), requirement: req,
-      status: ratio >= 0.25 ? "partial" : "not_found", evidence: ratio >= 0.25 ? lines[bestI] : "",
+      status: ratio >= 0.25 ? "partial" : "not_found", evidence: ratio >= 0.25 ? (lines[bestI] ?? "") : "",
       missing: missing.length ? [`Wording not found anywhere in your resume: ${missing.join(", ")}`] : ["Terms appear in your resume, but not together in one achievement"] });
   }
   return { checked: bullets.length, covered, gaps };
