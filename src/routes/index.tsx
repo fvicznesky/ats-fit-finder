@@ -216,6 +216,34 @@ function Results({
         </div>
       </div>
 
+      <section aria-labelledby="requirement-review-heading" className="mt-8 border-t pt-6">
+        <h3 id="requirement-review-heading" className="font-serif text-lg">Job requirements not demonstrated</h3>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {r.requirement_review.gaps.length} potential evidence gaps across {r.requirement_review.checked} supported capability checks.
+          {" "}This is separate from your keyword score, not a complete reading of every requirement. Skills listed alone do not demonstrate delivery; missing evidence does not mean you lack the experience.
+        </p>
+        {r.requirement_review.checked === 0 && <p className="mt-3 text-sm text-muted-foreground">No supported capability requirements detected; evidence coverage is unverified.</p>}
+        {r.requirement_review.checked > 0 && r.requirement_review.gaps.length === 0 && <p className="mt-3 text-sm text-success">Resume evidence found for the supported checks. Other requirements may still need review.</p>}
+        <ol className="mt-4 divide-y">
+          {r.requirement_review.gaps.map((gap) => (
+            <li key={gap.capability} className="py-4 text-sm">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h4 className="font-semibold">{gap.capability}</h4>
+                <span className="text-xs font-medium text-destructive">{gap.status === "partial" ? "Partial evidence" : "No evidence found"}</span>
+              </div>
+              <p className="mb-1 mt-3 text-xs font-medium text-muted-foreground">Job description asks for</p>
+              <blockquote className="break-words border-l-2 border-primary pl-3">{gap.requirement}</blockquote>
+              <p className="mb-1 mt-3 text-xs font-medium text-muted-foreground">Resume evidence</p>
+              <p className="break-words">{gap.evidence || "No matching achievement or responsibility detected."}</p>
+              <p className="mt-3 font-medium">Not demonstrated in your resume</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5 text-muted-foreground">
+                {gap.missing.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       {r.warnings.length > 0 && (
         <div className="mt-5 rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm">
           {r.warnings.map((w) => (
@@ -227,11 +255,11 @@ function Results({
       <h3 className="mt-8 font-serif text-lg">Score breakdown</h3>
       <div className="mt-3 space-y-2">
         {r.breakdown.map((b) => (
-          <div key={b.label} className="grid grid-cols-[12rem_1fr_3rem] items-center gap-3 text-sm">
+          <div key={b.label} className="grid grid-cols-[minmax(0,1fr)_3rem] items-center gap-3 text-sm sm:grid-cols-[12rem_1fr_3rem]">
             <span>
               {b.label} ({b.weight}%)
             </span>
-            <div className="h-2 rounded-full bg-muted">
+            <div className="order-3 col-span-2 h-2 rounded-full bg-muted sm:order-none sm:col-span-1">
               <div className="h-2 rounded-full bg-primary" style={{ width: `${b.score}%` }} />
             </div>
             <span className="text-right">{b.score}%</span>

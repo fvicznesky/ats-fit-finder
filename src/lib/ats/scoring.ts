@@ -6,6 +6,7 @@
 // - "|" in the headline/contact lines no longer triggers the table warning
 // - missing-skill advice asks for real evidence instead of template bullets
 import { DEGREE_TERMS, SECTION_HEADERS, SKILL_ALIASES, STOPWORDS } from "./keywords";
+import { reviewRequirements, type RequirementReview } from "./requirements";
 
 export const TARGET_SCORE = 90;
 
@@ -18,6 +19,7 @@ export type Recommendation = {
 };
 
 export type ScoreResult = {
+  requirement_review: RequirementReview;
   score: number;
   target: number;
   projected_score: number;
@@ -154,6 +156,7 @@ export function scoreResume(resumeText: string, jobText: string, opts?: { titleO
   }
 
   return {
+    requirement_review: reviewRequirements(resume, job),
     score, target: TARGET_SCORE, projected_score: projected, breakdown,
     matched_keywords: matched, missing_required: missingRequired, missing_preferred: missingPreferred,
     recommendations: recs, sections_found: [...sections].sort(), warnings,
@@ -203,7 +206,15 @@ export function extractJobTitle(jobText: string): string {
       if (t) return t;
     }
   }
-  // Second pass: first short non-bullet line that is not a generic section header or duties line.
+  // Prefer a standalone role title over slogans and company introduction text.
+  const roleTitle = raw.find((s) =>
+    s.length <= 80 && !/^[-*•]/.test(s) &&
+    /\b(?:director|engineer|manager|analyst|developer|architect|officer|specialist|consultant|administrator|president|head|lead)\b/i.test(s) &&
+    !/[.!?;:]$/.test(s) && !GENERIC_HEADINGS.has(s.toLowerCase()) &&
+    !/\b(?:responsibilities|duties|qualifications|requirements|we|you|our)\b/i.test(s)
+  );
+  if (roleTitle) return cleanTitle(roleTitle);
+  // Fallback: first short non-bullet line that is not a generic section header or duties line.
   for (const s of raw) {
     if (/^[-*•]/.test(s)) continue; // bullet lines are duties, never the title
     const key = s.toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim();

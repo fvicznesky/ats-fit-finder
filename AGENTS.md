@@ -31,3 +31,4 @@ use the editor.
 
 ## Project rules
 - ATS scoring runs entirely in the browser (`src/lib/ats/`), ported from the original Python repo; keep it pure and deterministic so `src/test/scoring.test.ts` can pin each accuracy rule.
+- Keep capability evidence review separate from weighted keyword scoring; quote source requirements and resume evidence, and describe missing wording as unverified experience rather than a factual deficiency.
