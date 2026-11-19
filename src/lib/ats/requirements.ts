@@ -97,3 +97,53 @@ export function reviewRequirements(resume: string, job: string): RequirementRevi
   }
   return { checked, covered, gaps };
 }
+import { STOPWORDS } from "./keywords";
+import { normalizeText, stem } from "./scoring";
+
+const FILLER = new Set(["manage", "managing", "oversee", "overseeing", "develop", "establish", "maintain", "drive", "collaborate", "partner", "identify", "implement", "overall", "similar", "proven", "familiarity", "ideal", "bring", "focus", "ensure", "provide", "support", "lead", "drive", "help", "assist", "etc", "various", "related", "relevant", "appropriate", "effective", "effectively", "excellent", "proven", "demonstrated", "knowledge", "understanding", "skills", "skill", "level", "all", "any", "more", "most", "one", "two", "three", "who", "what", "when", "where", "how", "which", "can", "have", "has", "not", "per", "out", "other", "key", "own", "make", "makes"]);
+const contentWords = (s: string) => [...new Set(normalizeText(s).split(" ").filter(w => w.length > 2 && !STOPWORDS.has(w) && !FILLER.has(w) && !/^\d+$/.test(w)))];
+
+/** Generic check for any posting: each job bullet vs. the closest resume line by shared content words. */
+export function reviewJobBullets(resume: string, job: string, skip: string[] = []): RequirementReview {
+  // Bulleted lines, or plain lines listed under a heading like "Key Responsibilities:" (pasted postings lose bullets).
+  let underHeading = false;
+  const bullets = job.split(/\r?\n/).filter(l => {
+    const t = l.trim();
+    if (!t) { underHeading = false; return false; }
+    if (/:$/.test(t) && t.split(/\s+/).length <= 6) { underHeading = true; return false; }
+    return underHeading || /^\s*[-*•●▪◦‣·]|^\s*\d+[.)]\s/.test(l);
+  })
+    .map(l => l.replace(/^\s*(?:[-*•●▪◦‣·]|\d+[.)])\s*/, "").trim())
+    .filter(l => contentWords(l).length >= 3 && !skip.some(s => s.includes(l)));
+  const lines: string[] = [];
+  for (const raw of resume.split(/\r?\n/)) {
+    const t = raw.replace(/^\s*[-*•●▪◦‣]\s*/, "").trim();
+    if (!t) continue;
+    const prev = lines.at(-1);
+    if (prev && !/^\s*[-*•●▪◦‣]/.test(raw) && !/[.!?]$/.test(prev) && /^[a-z0-9]/.test(t)) lines[lines.length - 1] += ` ${t}`;
+    else lines.push(t);
+  }
+  const lineStems = lines.map(l => new Set(normalizeText(l).split(" ").map(stem)));
+  const all = new Set(lineStems.flatMap(s => [...s]));
+  const gaps: RequirementGap[] = [];
+  let covered = 0;
+  for (const req of bullets) {
+    const words = contentWords(req);
+    let bestI = -1, bestHits = 0;
+    lineStems.forEach((s, i) => { const h = words.filter(w => s.has(stem(w))).length; if (h > bestHits) { bestHits = h; bestI = i; } });
+    const missing = words.filter(w => !all.has(stem(w)));
+    const ratio = bestHits / words.length;
+    if (ratio >= 0.6) { covered++; continue; }
+    gaps.push({ capability: req.split(/\s+/).slice(0, 8).join(" ") + (req.split(/\s+/).length > 8 ? "…" : ""), requirement: req,
+      status: ratio >= 0.25 ? "partial" : "not_found", evidence: ratio >= 0.25 ? lines[bestI] : "",
+      missing: missing.length ? [`Wording not found anywhere in your resume: ${missing.join(", ")}`] : ["Terms appear in your resume, but not together in one achievement"] });
+  }
+  return { checked: bullets.length, covered, gaps };
+}
+
+/** Catalog checks plus generic per-bullet checks for anything the catalog didn't cover. */
+export function reviewAll(resume: string, job: string): RequirementReview {
+  const a = reviewRequirements(resume, job);
+  const b = reviewJobBullets(resume, job, a.gaps.map(g => g.requirement));
+  return { checked: a.checked + b.checked, covered: a.covered + b.covered, gaps: [...a.gaps, ...b.gaps] };
+}

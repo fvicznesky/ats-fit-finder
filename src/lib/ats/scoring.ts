@@ -6,7 +6,7 @@
 // - "|" in the headline/contact lines no longer triggers the table warning
 // - missing-skill advice asks for real evidence instead of template bullets
 import { DEGREE_TERMS, SECTION_HEADERS, SKILL_ALIASES, STOPWORDS } from "./keywords";
-import { reviewRequirements, type RequirementReview } from "./requirements";
+import { reviewAll, type RequirementReview } from "./requirements";
 
 export const TARGET_SCORE = 90;
 
@@ -156,7 +156,7 @@ export function scoreResume(resumeText: string, jobText: string, opts?: { titleO
   }
 
   return {
-    requirement_review: reviewRequirements(resume, job),
+    requirement_review: reviewAll(resumeText, jobText),
     score, target: TARGET_SCORE, projected_score: projected, breakdown,
     matched_keywords: matched, missing_required: missingRequired, missing_preferred: missingPreferred,
     recommendations: recs, sections_found: [...sections].sort(), warnings,

@@ -219,7 +219,7 @@ function Results({
       <section aria-labelledby="requirement-review-heading" className="mt-8 border-t pt-6">
         <h3 id="requirement-review-heading" className="font-serif text-lg">Job requirements not demonstrated</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          {r.requirement_review.gaps.length} potential evidence gaps across {r.requirement_review.checked} supported capability checks.
+          {r.requirement_review.gaps.length} potential evidence gaps across {r.requirement_review.checked} job requirement checks.
           {" "}This is separate from your keyword score, not a complete reading of every requirement. Skills listed alone do not demonstrate delivery; missing evidence does not mean you lack the experience.
         </p>
         {r.requirement_review.checked === 0 && <p className="mt-3 text-sm text-muted-foreground">No supported capability requirements detected; evidence coverage is unverified.</p>}

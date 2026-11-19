@@ -123,3 +123,17 @@ describe("job requirement evidence review", () => {
     expect(r.covered).toBe(1);
   });
 });
+
+import { reviewJobBullets } from "@/lib/ats/requirements";
+describe("generic job bullet review", () => {
+  it("flags a posting bullet whose wording is absent from the resume", () => {
+    const r = reviewJobBullets("Skills\n- Built Python APIs on AWS", "Duties:\n- Manage vendor contracts and procurement negotiations\n- Build Python APIs on AWS cloud");
+    expect(r.checked).toBe(2);
+    expect(r.gaps).toHaveLength(1);
+    expect(r.gaps[0].requirement).toContain("vendor contracts");
+  });
+});
+it("reads unbulleted lines under a heading", () => {
+  const r = reviewJobBullets("Led AWS migration", "Key Responsibilities:\nManage vendor contracts and procurement negotiations\n\nAbout us blah blah company culture");
+  expect(r.checked).toBe(1);
+});
